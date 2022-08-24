@@ -1,4 +1,4 @@
-package com.shofq.springcache.config;
+package com.shofq.springcache.config.cluster;
 
 import io.lettuce.core.resource.Delay;
 import org.slf4j.Logger;

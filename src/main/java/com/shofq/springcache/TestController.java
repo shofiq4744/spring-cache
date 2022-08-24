@@ -1,9 +1,12 @@
 package com.shofq.springcache;
 
-import com.shofq.springcache.config.RedisCacheManager;
+import com.shofq.springcache.config.single.RedisCacheManager;
+import com.shofq.springcache.config.cluster.RedisClusterCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
@@ -14,30 +17,28 @@ import java.util.Map;
 public class TestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisCacheManager.class);
-    private final String KEY = "testKey";
-    private final RedisCacheManager cacheManager;
+    private static final String KEY = "cache-key";
+    private static final String VALUE = "cache-value";
+    private final RedisClusterCacheManager cacheManager;
 
-    public TestController(RedisCacheManager cacheManager){
+    public TestController(RedisClusterCacheManager cacheManager){
         this.cacheManager = cacheManager;
     }
 
-    @GetMapping("/store")
-    public Mono storeCache(){
+    @GetMapping("/set")
+    public Mono storeCache(@RequestBody Map<String,String> request){
         Map<String,String> map = new HashMap<>();
-        map.put("id","1");
-        map.put("district","dhaka");
-        map.put("value","200");
-        cacheManager.setToLocalCache(KEY,map);
-        cacheManager.setToSharedCache(map,KEY);
-        LOGGER.debug("cache store success cache key ",KEY);
-        return Mono.just("success");
+        map.put(VALUE,request.get(VALUE));
+       // cacheManager.setToLocalCache(KEY,map);
+        return cacheManager.setToSharedCache(map, request.get(KEY))
+                .flatMap(res-> Mono.just(res));
     }
 
-    @GetMapping("/get")
-    public Mono getCache(){
+    @GetMapping("/get/{key}")
+    public Mono getCacheValue(@PathVariable String key){
         Map bothCache = new HashMap();
-        bothCache.put("local",cacheManager.getToLocalCache(KEY));
-        return cacheManager.getFromSharedCache(KEY)
+        //bothCache.put("local",cacheManager.getToLocalCache(KEY));
+        return cacheManager.getFromSharedCache(key)
                 .flatMap(res->{
                     bothCache.put("share",res);
                     return Mono.just(bothCache);

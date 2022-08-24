@@ -1,15 +1,14 @@
-package com.shofq.springcache.config;
+package com.shofq.springcache.config.cluster;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.lettuce.core.SetArgs;
+import io.lettuce.core.cluster.api.reactive.RedisAdvancedClusterReactiveCommands;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -22,18 +21,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
-public class RedisCacheManager {
+public class RedisClusterCacheManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RedisCacheManager.class);
-    private final ReactiveRedisTemplate<String, Object> redisTemplate;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisClusterCacheManager.class);
+    private final ReactiveCommandsManager reactiveCommandsManager;
     private final int LOCAL_CACHE_EXPIRE = 12;
 
     private MeterRegistry meterRegistry;
     private Map<String, Cache<String, Object>> localCacheHandlerMap = new ConcurrentHashMap<>();
 
 
-    public RedisCacheManager(ReactiveRedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public RedisClusterCacheManager(ReactiveCommandsManager reactiveCommandsManager) {
+        this.reactiveCommandsManager = reactiveCommandsManager;
     }
 
     /* Get cache from Radis
@@ -59,7 +58,7 @@ public class RedisCacheManager {
         SetArgs setArgs = new SetArgs();
         setArgs.px(sharedCacheTimeout.toMillis());
         return getReactiveCommands()
-                .set(cacheKey, new String(getValueSerializer().serialize(data), StandardCharsets.UTF_8), sharedCacheTimeout)
+                .set(cacheKey, new String(getValueSerializer().serialize(data), StandardCharsets.UTF_8), setArgs)
                 .flatMap(s -> "OK".equals(s) ? Mono.just(true) :
                         Mono.error(new Exception("")))
                 .doOnSubscribe(subscription -> startTime.set(System.currentTimeMillis()))
@@ -108,7 +107,7 @@ public class RedisCacheManager {
         return valueSerializerNotFailOnUnknownProperties;
     }
 
-    private ReactiveValueOperations<String, Object> getReactiveCommands(){
-        return redisTemplate.opsForValue();
+    private RedisAdvancedClusterReactiveCommands getReactiveCommands(){
+        return reactiveCommandsManager.getClusterReactiveCommands();
     }
 }

@@ -1,6 +1,30 @@
-package com.shofq.springcache.config;
+package com.shofq.springcache.config.cluster;
 
-/*
+
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.SocketOptions;
+import io.lettuce.core.TimeoutOptions;
+import io.lettuce.core.cluster.ClusterClientOptions;
+import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.resource.ClientResources;
+import io.micrometer.core.instrument.util.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.convert.ApplicationConversionService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+
+import java.time.Duration;
+import java.util.*;
+
 @Configuration
 public class RedisClusterConfig {
 
@@ -10,7 +34,7 @@ public class RedisClusterConfig {
     public static final String RECONNECT_ATTEMPT = "2";
     private static final int DEFAULT_ADAPTIVE_REFRESH_TRIGGER_TIMEOUT = 500;
     private static final int DEFAULT_RECONNECT_ATTEMPT = 2;
-    private static boolean IS_CLUSTER = false;
+    private static boolean IS_CLUSTER = true;
 
     private static final List<Duration> DEFAULT_DURATION_LIST = ReconnectDelay.getReconnectDelayList(
             ReconnectDelay.DEFAULT_DURATION_LIST_STR);
@@ -88,4 +112,4 @@ public class RedisClusterConfig {
         return builder.build();
     }
 
-}*/
+}

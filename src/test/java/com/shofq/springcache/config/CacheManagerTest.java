@@ -1,5 +1,6 @@
 package com.shofq.springcache.config;
 
+import com.shofq.springcache.config.single.RedisCacheManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -19,7 +20,6 @@ public class CacheManagerTest {
 
     @BeforeEach
     void setup(){
-
         MockitoAnnotations.initMocks(this);
 
     }

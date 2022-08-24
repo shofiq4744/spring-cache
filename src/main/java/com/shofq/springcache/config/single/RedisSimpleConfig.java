@@ -1,4 +1,4 @@
-package com.shofq.springcache.config;
+package com.shofq.springcache.config.single;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
